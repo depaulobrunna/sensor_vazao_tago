@@ -1,0 +1,69 @@
+/* 
+ * Analysis Example
+ * Generic Payload Parse
+ * 
+ * Learn how to parse from a hexadecimal raw payload into temperature and humidity variables
+ * Tutorial: https://tago.elevio.help/en/articles/118
+ */
+
+const Analysis = require('tago/analysis');
+const Device = require('tago/device');
+const Utils = require('tago/utils');
+
+
+// The function myAnalysis will run when you execute your analysis
+async function myAnalysis(context, scope) {
+  // Create a variable called payload with the value sent by the device
+  // change payload to the name of you variable here ||
+  //                                                 \/
+  context.log('Ga analysis started')
+
+  const env_vars = Utils.env_to_obj(context.environment);
+  if (!env_vars.device_token) return context.log('Missing device_token environment variable');
+
+  // Instantiate the device with your device token
+  const device = new Device(env_vars.device_token);
+  var data = {}
+  data = scope.find(x => x.variable === "payload").value
+  context.log(`base64 data is ${data}`);
+  payload = Buffer.from(data);
+  context.log(payload);
+    // Create separate the string into two hexadecimal values
+    var adress  = payload[0];
+    var pulses = payload[2] | (payload[1]<<8);
+    var pulses_hour = (payload[6] | (payload[5]<<8) | (payload[4]<<16) | (payload[3]<<24)) + 52152;
+ /*   env_vars.pulses_hour += pulses;
+    env_vars.counter++;
+    if(env_vars.counter == 60){
+      env_vars.counter = 0;
+      const variables = [{
+      variable: 'Pulses/hour',
+      value: env_vars.pulses_hour,
+    }];
+    device.insert(variables).then(context.log('Successfully Inserted')).catch(error => context.log('Error when inserting:', error));
+    env_vars.pulses_hour = 0;
+    }
+*/
+    // Convert the hex values into decimal and apply the calculations
+
+    context.log(`pulses is ${pulses}`);
+    context.log(`counter is ${env_vars.counter}`);
+
+    // Create the two variables Temperature and Humidity to send to TagoIO
+    const variables = [{
+      variable: 'Pulses',
+      value: pulses
+    }, {
+      variable: 'Pulses_hour',
+      value: pulses_hour
+    }];
+    //await device.insert(variables).then(context.log).catch(context.log);
+    device.insert(variables).then(context.log('Successfully Inserted')).catch(error => context.log('Error when inserting:', error));
+    context.log('Ga analysis finished')
+
+  }
+
+
+
+// The analysis token in only necessary to run the analysis outside Tago
+module.exports = new Analysis(myAnalysis, 'YOUR-ANALYSIS-TOKEN');
