@@ -27,6 +27,7 @@ function parsePayload(payload_raw)
     
     var sum = buffer[7];
     var checker = (buffer[0]+buffer[1]+buffer[2]+buffer[3]+buffer[4]+buffer[5]+buffer[6]);
+    checker = checker & 0xFF;
     if (sum != checker)
     {
       var data = 
@@ -42,18 +43,12 @@ function parsePayload(payload_raw)
 
     var data = 
     [
-      {
-        variable: 'address', 
-        value: buffer[0] 
-      },{ 
-        variable: 'pulses',  
-        value: buffer[2] | (buffer[1]<<8) 
-      },{ 
-        variable: 'pulses_hour',  
-        value: (buffer[6] | (buffer[5]<<8) | (buffer[4]<<16) | (buffer[3]<<24))
-      }
+      { variable: 'address', value: buffer[0]},
+      { variable: 'pulses',  value: buffer[2] | (buffer[1]<<8) , unit: 'L' },
+      { variable: 'pulses_acum',  value:(buffer[6] | (buffer[5]<<8) | (buffer[4]<<16) | (buffer[3]<<24)), unit: 'L' },
     ];
     return data;
+
 
   } catch (e) {return [{ variable: 'parse_error', value: e.message }];}
 }

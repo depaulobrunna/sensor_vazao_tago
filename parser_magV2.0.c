@@ -27,6 +27,7 @@ function parsePayload(payload_raw)
     
     var sum = buffer[7];
     var checker = (buffer[0]+buffer[1]+buffer[2]+buffer[3]+buffer[4]+buffer[5]+buffer[6]);
+    checker = checker & 0xFF;
     if (sum != checker)
     {
       var data = 
